@@ -1,3 +1,6 @@
+# Purpose of this fork
+Attempting to add remote control functionality
+
 # Solarman integration
 This is a Home Assistant component for interacting with Solarman data collectors used with a variety of inverters. The integration allows Home Assistant to connect in direct-mode over the local network to the collector to extract the information, and no cables are required. 
 
