@@ -1,6 +1,8 @@
 # Purpose of this fork
 Attempting to add remote control functionality
 
+Modbus registers here: https://www.scss.tcd.ie/coghlan/Elios4you/RS485_MODBUS-Hybrid-BACoghlan-201811228-1854.pdf
+
 # Solarman integration
 This is a Home Assistant component for interacting with Solarman data collectors used with a variety of inverters. The integration allows Home Assistant to connect in direct-mode over the local network to the collector to extract the information, and no cables are required. 
 
