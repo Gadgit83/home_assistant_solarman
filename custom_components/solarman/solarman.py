@@ -54,7 +54,12 @@ class Inverter:
     def get_read_business_field(self, start, length, mb_fc):
         request_data = bytearray([self._mb_slaveid, mb_fc]) # Function Code
         request_data.extend(start.to_bytes(2, 'big'))
-        request_data.extend(length.to_bytes(2, 'big'))
+        if mb_fc == 0x06:
+            data = 10
+            request_data.extend(data.to_bytes(2, 'big'))
+        else:
+            request_data.extend(length.to_bytes(2, 'big'))
+            
         crc = self.modbus(request_data)
         request_data.extend(crc.to_bytes(2, 'little'))  
         return request_data
@@ -152,3 +157,8 @@ class Inverter:
     def get_sensors(self):
         params = ParameterParser(self.parameter_definition)
         return params.get_sensors ()
+        
+    def get_configurables(self):
+        params = ParameterParser(self.parameter_definition)
+        return params.get_configurables ()
+
