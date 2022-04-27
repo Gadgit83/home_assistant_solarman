@@ -59,6 +59,10 @@ def _do_setup_platform(hass: HomeAssistant, config, async_add_entities : AddEnti
 
     hass_sensors.append(SolarmanStatus(inverter_name, inverter, "status_lastUpdate", inverter_sn))
     hass_sensors.append(SolarmanStatus(inverter_name, inverter, "status_connection", inverter_sn))
+    
+    #  Prepare the control entities.
+    for sensor in inverter.get_configurables():
+        hass_sensors.append(SolarmanConfigurable(inverter_name, inverter, sensor, inverter_sn))
 
     _LOGGER.debug(f'sensor.py:_do_setup_platform: async_add_entities')
     _LOGGER.debug(hass_sensors)
@@ -177,3 +181,37 @@ class SolarmanSensor(SolarmanSensorText):
     def unit_of_measurement(self):
         return self.uom
 
+#############################################################################################################
+#  Entity displaying a numeric field read from the inverter
+#   Overrides the Text sensor and supply the device class, last_reset and unit of measurement
+#############################################################################################################
+
+
+class SolarmanConfigurable(SolarmanSensorText):
+    def __init__(self, inverter_name, inverter, sensor, sn):
+        SolarmanSensorText.__init__(self, inverter_name, inverter, sensor, sn)
+        self._device_class = sensor['class']
+        if 'state_class' in sensor:
+            self._state_class = sensor['state_class']
+        else:
+            self._state_class = None
+        self.uom = sensor['uom']
+        return
+
+    @property
+    def device_class(self):
+        return self._device_class
+
+
+    @property
+    def extra_state_attributes(self):
+        if self._state_class:
+            return  {
+                'state_class': self._state_class
+            }
+        else:
+            return None
+
+    @property
+    def unit_of_measurement(self):
+        return self.uom
