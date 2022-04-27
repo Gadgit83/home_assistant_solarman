@@ -13,7 +13,76 @@ requests:
   - start: 33200
     end:  33299
     mb_functioncode: 0x04
+  - start: 43115
+    end:  43115
+    mb_functioncode: 0x03
+  - start: 43116
+    end:  43116
+    mb_functioncode: 0x03
+  - start: 43117
+    end:  43117
+    mb_functioncode: 0x03
+  - start: 43118
+    end:  43118
+    mb_functioncode: 0x03
+  - start: 43141
+    end:  43141
+    mb_functioncode: 0x03
+  - start: 43142
+    end:  43142
+    mb_functioncode: 0x03
 
+configurables:
+ - group: InverterSettings
+   items: 
+    - name: "Battery charge direction"
+      class: ""
+      state_class: ""
+      uom: ""
+      scale: 1
+      rule: 6
+      registers: [43115]
+      icon: 'mdi:home-lightning-bolt'
+    - name: "Battery charge/discharge current maximum"
+      class: "current"
+      state_class: "measurement"
+      uom: "A"
+      scale: 0.1
+      rule: 1
+      registers: [43116]
+      icon: 'mdi:current-dc'
+    - name: "Battery charge current maximum"
+      class: "current"
+      state_class: "measurement"
+      uom: "A"
+      scale: 0.1
+      rule: 1
+      registers: [43117]
+      icon: 'mdi:current-dc'
+    - name: "Battery discharge current maximum"
+      class: "current"
+      state_class: "measurement"
+      uom: "A"
+      scale: 0.1
+      rule: 1
+      registers: [43118]
+      icon: 'mdi:current-dc'
+    - name: "Timed Charge Current"
+      class: "current"
+      state_class: "measurement"
+      uom: "A"
+      scale: 0.1
+      rule: 1
+      registers: [43141]
+      icon: 'mdi:battery-charging'
+    - name: "Timed Discharge current"
+      class: "current"
+      state_class: "measurement"
+      uom: "A"
+      scale: 0.1
+      rule: 1
+      registers: [43142]
+      icon: 'mdi:battery-minus'
 parameters:
  - group: InverterStatus
    items: 
@@ -262,7 +331,7 @@ parameters:
    items: 
     - name: "Daily Generation"
       class: "energy"
-      state_class: "measurement"
+      state_class: "total_increasing"
       uom: "kWh"
       scale: 0.1
       rule: 1
@@ -499,7 +568,7 @@ parameters:
 
     - name: "Today Battery Charge"
       class: "energy"
-      state_class: "measurement"      
+      state_class: "total_increasing"      
       uom: "kWh"
       scale: 0.1
       rule: 1
@@ -508,7 +577,7 @@ parameters:
 
     - name: "Today Battery Discharge"
       class: "energy"
-      state_class: "measurement"
+      state_class: "total_increasing"
       uom: "kWh"
       scale: 0.1
       rule: 1
