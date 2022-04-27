@@ -152,6 +152,13 @@ class ParameterParser:
                 result.append(j)
         return result
     
+    def get_configurables (self):
+        result = []
+        for i in self._lookups['configurables']:
+            for j in i['items']:
+                result.append(j)
+        return result
+    
     def is_integer_num(self, n):
         if isinstance(n, int):
             return True
