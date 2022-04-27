@@ -19,6 +19,9 @@ class ParameterParser:
         for i in self._lookups['parameters']:
             for j in i['items']:
                 self.try_parse_field(rawData, j, start, length)        
+        for i in self._lookups['configurables']:
+            for j in i['items']:
+                self.try_parse_field(rawData, j, start, length)        
         return
 
     def get_result(self):
