@@ -13,6 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
 from homeassistant.helpers.entity import Entity
+from homeassistant.components.number import NumberEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import *
@@ -186,32 +187,46 @@ class SolarmanSensor(SolarmanSensorText):
 #   Overrides the Text sensor and supply the device class, last_reset and unit of measurement
 #############################################################################################################
 
-
-class SolarmanConfigurable(SolarmanSensorText):
+class SolarmanConfigurable(NumberEntity):
     def __init__(self, inverter_name, inverter, sensor, sn):
-        SolarmanSensorText.__init__(self, inverter_name, inverter, sensor, sn)
-        self._device_class = sensor['class']
-        if 'state_class' in sensor:
-            self._state_class = sensor['state_class']
-        else:
-            self._state_class = None
-        self.uom = sensor['uom']
+        self._inverter_name = inverter_name
+        self.inverter = inverter
+        self._sn = sn
+        self.p_state = None
+        self._field_name = sensor['name']
+        self._registers = sensor['registers']
         return
 
     @property
-    def device_class(self):
-        return self._device_class
-
-
-    @property
-    def extra_state_attributes(self):
-        if self._state_class:
-            return  {
-                'state_class': self._state_class
-            }
-        else:
-            return None
+    def name(self):
+        #  Return the name of the sensor.
+        return "{} {}".format(self._inverter_name, self._field_name)
 
     @property
-    def unit_of_measurement(self):
-        return self.uom
+    def unique_id(self):
+        # Return a unique_id based on the serial number
+        return "{}_{}_{}".format(self._inverter_name, self._sn, self._field_name)
+
+    @property
+    def value(self):
+        return self.p_state
+        
+    #def set_value(self, value: float) -> None:
+    async def async_set_value(self, value):
+        """Update the current value."""
+        _LOGGER.debug('set configurable value')
+        self.p_state = value
+        self.inverter.update_configurable(self._registers)
+        
+    def update(self):
+        #  Update this sensor using the data.
+        #  Get the latest data and use it to update our sensor state.
+        #  Retrieve the sensor data from actual interface
+        self.inverter.update()
+        #_LOGGER.debug('update configurable!')
+        #_LOGGER.debug(self._field_name)
+
+        val = self.inverter.get_current_val()
+        if val is not None:
+            if self._field_name in val:
+                self.p_state = val[self._field_name]

@@ -1,13 +1,13 @@
 import yaml
 import struct
-
-
+from datetime import datetime
+import logging
 
 
 # The parameters start in the "business field" 
 # just after the first two bytes.
 OFFSET_PARAMS = 28
-
+_LOGGER = logging.getLogger(__name__)
 
 class ParameterParser:
     def __init__(self, lookups):
@@ -42,6 +42,8 @@ class ParameterParser:
             self.try_parse_ascii(rawData,definition, start, length)
         elif rule == 6:
             self.try_parse_bits(rawData,definition, start, length)
+        elif rule == 7:
+            self.try_parse_time(rawData,definition, start, length)
         return
 
     def try_parse_signed (self, rawData, definition, start, length):
@@ -139,12 +141,47 @@ class ParameterParser:
             index = r - start   # get the decimal value of the register'
             if (index >= 0) and (index < length):
                 offset = OFFSET_PARAMS + (index * 2)
+                #_LOGGER.debug(rawData[offset:offset + 2][0]) 
                 temp = struct.unpack('>H', rawData[offset:offset + 2])[0]
                 value.append(hex(temp))
             else:
                 found = False
 
         if found:
+            self.result[title] = value
+        return 
+    
+    def try_parse_time (self, rawData, definition, start, length):
+        title = definition['name']         
+        found = True
+        value = datetime.now()
+        for r in definition['registers']:
+            index = r - start   # get the decimal value of the register'
+            # _LOGGER.debug(f'index: {index}') 
+            # _LOGGER.debug(f'length: {length}') 
+            # _LOGGER.debug('rawData:') 
+            # _LOGGER.debug(rawData) 
+            # _LOGGER.debug('rawdata.length:') 
+            # _LOGGER.debug(len(rawData)) 
+            # _LOGGER.debug(f'OFFSET_PARAMS + (index * 2):') 
+            # _LOGGER.debug(OFFSET_PARAMS + (index * 2)) 
+            # _LOGGER.debug(f'rawData[offset:offset + 2]:') 
+            # _LOGGER.debug(rawData[offset:offset + 2][0]) 
+            # _LOGGER.debug(rawData[offset:offset + 2][1]) 
+            
+            if (index >= 0) and (index < length):
+                offset = OFFSET_PARAMS + (index * 2)
+                temp = struct.unpack('>H', rawData[offset:offset + 2])[0]
+                #_LOGGER.debug(r)
+                if index == 0:
+                    value.hour = temp
+                else:
+                    value.minute = temp
+            else:
+                found = False
+
+        if found:
+            _LOGGER.debug('found it')
             self.result[title] = value
         return 
     

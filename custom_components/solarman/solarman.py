@@ -55,9 +55,10 @@ class Inverter:
         request_data = bytearray([self._mb_slaveid, mb_fc]) # Function Code
         request_data.extend(start.to_bytes(2, 'big'))
         if mb_fc == 0x06:
-            data = 10
+            data = 210
             request_data.extend(data.to_bytes(2, 'big'))
         else:
+            log.debug(length)
             request_data.extend(length.to_bytes(2, 'big'))
             
         crc = self.modbus(request_data)
@@ -147,9 +148,28 @@ class Inverter:
             self.status_lastUpdate = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
             self.status_connection = "Connected"                               
             self._current_val = params.get_result()
+            log.debug(self._current_val)
         else:
             self.status_connection = "Disconnected"
             
+    def update_configurable(self,registers):
+        result = 1
+        params = ParameterParser(self.parameter_definition)
+        if len(registers) == 1:
+            start = registers[1]
+            end= registers[1]
+            mb_fc = 0x06
+            #if 0 == self.send_request(params, start, end, mb_fc):
+                # retry once
+                #if 0 == self.send_request(params, start, end, mb_fc):
+                #    result = 0
+                    
+        if result == 1: 
+            self.status_lastUpdate = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+            self.status_connection = "Connected"
+            log.debug(self._current_val)
+        else:
+            self.status_connection = "Disconnected"
 
     def get_current_val(self):
         return self._current_val
