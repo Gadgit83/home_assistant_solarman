@@ -3,6 +3,8 @@ Attempting to add remote control functionality
 
 Modbus registers here: https://www.scss.tcd.ie/coghlan/Elios4you/RS485_MODBUS-Hybrid-BACoghlan-201811228-1854.pdf
 
+Be Warned! This Integration has the capability to write modbus data directly to your inverter. I has a very strong possibility to completely brick your device, or at the very least change settings in it which you may not be able to change back, or not know the original value for. Use at your own risk - you have been warned!
+
 # Solarman integration
 This is a Home Assistant component for interacting with Solarman data collectors used with a variety of inverters. The integration allows Home Assistant to connect in direct-mode over the local network to the collector to extract the information, and no cables are required. 
 
