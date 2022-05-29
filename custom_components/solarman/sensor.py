@@ -13,7 +13,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_NAME
 from homeassistant.helpers.entity import Entity
-from homeassistant.components.number import NumberEntity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import *
@@ -24,47 +23,21 @@ _LOGGER = logging.getLogger(__name__)
 _inverter_scanner = InverterScanner()
 
 def _do_setup_platform(hass: HomeAssistant, config, async_add_entities : AddEntitiesCallback):
-    _LOGGER.debug(f'sensor.py:async_setup_platform: {config}') 
-   
+
     inverter_name = config.get(CONF_NAME)
-    inverter_host = config.get(CONF_INVERTER_HOST)
-    if inverter_host == "0.0.0.0":
-        inverter_host = _inverter_scanner.get_ipaddress()
-        
-   
-    inverter_port = config.get(CONF_INVERTER_PORT)
-    inverter_sn = config.get(CONF_INVERTER_SERIAL)
-    if inverter_sn == 0:
-        inverter_sn = _inverter_scanner.get_serialno()
     
-    inverter_mb_slaveid = config.get(CONF_INVERTER_MB_SLAVEID)
-    if not inverter_mb_slaveid:
-        inverter_mb_slaveid = DEFAULT_INVERTER_MB_SLAVEID
-    lookup_file = config.get(CONF_LOOKUP_FILE)
-    path = hass.config.path('custom_components/solarman/inverter_definitions/')
-
-    # Check input configuration.
-    if inverter_host is None:
-        raise vol.Invalid('configuration parameter [inverter_host] does not have a value')
-    if inverter_sn is None:
-        raise vol.Invalid('configuration parameter [inverter_serial] does not have a value')
-
-    inverter = Inverter(path, inverter_sn, inverter_host, inverter_port, inverter_mb_slaveid, lookup_file)
+    inverter = hass.data[DOMAIN]["inverter"]
     #  Prepare the sensor entities.
     hass_sensors = []
     for sensor in inverter.get_sensors():
         if "isstr" in sensor:
-            hass_sensors.append(SolarmanSensorText(inverter_name, inverter, sensor, inverter_sn))
+            hass_sensors.append(SolarmanSensorText(inverter_name, inverter, sensor, inverter._serial))
         else:
-            hass_sensors.append(SolarmanSensor(inverter_name, inverter, sensor, inverter_sn))
+            hass_sensors.append(SolarmanSensor(inverter_name, inverter, sensor, inverter._serial))
 
-    hass_sensors.append(SolarmanStatus(inverter_name, inverter, "status_lastUpdate", inverter_sn))
-    hass_sensors.append(SolarmanStatus(inverter_name, inverter, "status_connection", inverter_sn))
+    hass_sensors.append(SolarmanStatus(inverter_name, inverter, "status_lastUpdate", inverter._serial))
+    hass_sensors.append(SolarmanStatus(inverter_name, inverter, "status_connection", inverter._serial))
     
-    #  Prepare the control entities.
-    for sensor in inverter.get_configurables():
-        hass_sensors.append(SolarmanConfigurable(inverter_name, inverter, sensor, inverter_sn))
-
     _LOGGER.debug(f'sensor.py:_do_setup_platform: async_add_entities')
     _LOGGER.debug(hass_sensors)
 
@@ -81,7 +54,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     _do_setup_platform(hass, entry.options, async_add_entities)
     
    
-
 #############################################################################################################
 # This is the entity seen by Home Assistant.
 #  It derives from the Entity class in HA and is suited for status values.
@@ -140,10 +112,13 @@ class SolarmanSensorText(SolarmanStatus):
     #  Get the latest data and use it to update our sensor state.
     #  Retrieve the sensor data from actual interface
         self.inverter.update()
-
+        #_LOGGER.debug(f'Update SolarmanSensorText: {self._field_name}') 
+        
         val = self.inverter.get_current_val()
+        #_LOGGER.debug(val) 
         if val is not None:
             if self._field_name in val:
+                #_LOGGER.debug(val[self._field_name]) 
                 self.p_state = val[self._field_name]
 
 
@@ -181,52 +156,3 @@ class SolarmanSensor(SolarmanSensorText):
     @property
     def unit_of_measurement(self):
         return self.uom
-
-#############################################################################################################
-#  Entity displaying a numeric field read from the inverter
-#   Overrides the Text sensor and supply the device class, last_reset and unit of measurement
-#############################################################################################################
-
-class SolarmanConfigurable(NumberEntity):
-    def __init__(self, inverter_name, inverter, sensor, sn):
-        self._inverter_name = inverter_name
-        self.inverter = inverter
-        self._sn = sn
-        self.p_state = None
-        self._field_name = sensor['name']
-        self._registers = sensor['registers']
-        return
-
-    @property
-    def name(self):
-        #  Return the name of the sensor.
-        return "{} {}".format(self._inverter_name, self._field_name)
-
-    @property
-    def unique_id(self):
-        # Return a unique_id based on the serial number
-        return "{}_{}_{}".format(self._inverter_name, self._sn, self._field_name)
-
-    @property
-    def value(self):
-        return self.p_state
-        
-    #def set_value(self, value: float) -> None:
-    async def async_set_value(self, value):
-        """Update the current value."""
-        _LOGGER.debug('set configurable value')
-        self.p_state = value
-        self.inverter.update_configurable(self._registers)
-        
-    def update(self):
-        #  Update this sensor using the data.
-        #  Get the latest data and use it to update our sensor state.
-        #  Retrieve the sensor data from actual interface
-        self.inverter.update()
-        #_LOGGER.debug('update configurable!')
-        #_LOGGER.debug(self._field_name)
-
-        val = self.inverter.get_current_val()
-        if val is not None:
-            if self._field_name in val:
-                self.p_state = val[self._field_name]

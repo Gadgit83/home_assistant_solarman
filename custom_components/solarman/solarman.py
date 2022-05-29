@@ -51,26 +51,28 @@ class Inverter:
         serial_bytes.reverse()
         return serial_bytes
     
-    def get_read_business_field(self, start, length, mb_fc):
+    def get_read_business_field(self, start, length, mb_fc,value=None):
         request_data = bytearray([self._mb_slaveid, mb_fc]) # Function Code
         request_data.extend(start.to_bytes(2, 'big'))
         if mb_fc == 0x06:
-            data = 210
+            if value == None:
+                raise ValueError('Configurable Parameter value not set')
+            data = value
             request_data.extend(data.to_bytes(2, 'big'))
         else:
-            log.debug(length)
+            #log.debug(f'get_read_business_field length: {length}')
             request_data.extend(length.to_bytes(2, 'big'))
             
         crc = self.modbus(request_data)
         request_data.extend(crc.to_bytes(2, 'little'))  
         return request_data
         
-    def generate_request(self, start, length, mb_fc):
+    def generate_request(self, start, length, mb_fc,value=None):
         packet = bytearray([START_OF_MESSAGE])
 
         packet_data = []
         packet_data.extend (SEND_DATA_FIELD)
-        buisiness_field = self.get_read_business_field(start, length, mb_fc)
+        buisiness_field = self.get_read_business_field(start, length, mb_fc,value)
         packet_data.extend(buisiness_field)
         length = packet_data.__len__()
         packet.extend(length.to_bytes(2, "little")) 
@@ -102,24 +104,28 @@ class Inverter:
             return 0
         
     
- 
-    def send_request (self, params, start, end, mb_fc):
+    def send_request (self, params, start, end, mb_fc,value=None):
         result = 0
         length = end - start + 1
-        request = self.generate_request(start, length, mb_fc)
+        request = self.generate_request(start, length, mb_fc,value)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(10)
+        sock.settimeout(5)
+        
         try:
             sock.connect((self._host, self._port))
-            log.debug(request.hex())
             sock.sendall(request) # Request param 0x3B up to 0x71
             raw_msg = sock.recv(1024)
-            log.debug(raw_msg.hex())
             if self.validate_checksum(raw_msg) == 1:
                 result = 1
                 params.parse(raw_msg, start, length) 
+                log.debug(f'checksum OK param Result {params.get_result()}')
+            else:
+                log.debug(f'Failed checksum - raw response: {raw_msg.hex()}')
             del raw_msg
-        except:
+        except Exception as err:
+            log.debug(request.hex())
+            log.debug(f'exception raised {format(err)}')
+            log.debug(traceback.format_exc())
             result = 0
         finally:
             sock.close()   
@@ -139,37 +145,42 @@ class Inverter:
             start = request['start']
             end= request['end']
             mb_fc = request['mb_functioncode']
+            #log.debug(f'send request: {start} {end} {mb_fc}')
             if 0 == self.send_request(params, start, end, mb_fc):
                 # retry once
+                #log.debug('first try failed')
                 if 0 == self.send_request(params, start, end, mb_fc):
                     result = 0
-                    
+                    #log.debug('second try failed')
+            #else:
+                #log.debug('send request successful!')
+                
+        #log.debug(f'result: {result}')
+        
         if result == 1: 
             self.status_lastUpdate = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
             self.status_connection = "Connected"                               
             self._current_val = params.get_result()
-            log.debug(self._current_val)
+            #log.debug("Inverter Current Val")
+            #log.debug(self._current_val)
         else:
             self.status_connection = "Disconnected"
             
-    def update_configurable(self,registers):
+    def update_configurable(self,registers,value):
         result = 1
         params = ParameterParser(self.parameter_definition)
         if len(registers) == 1:
-            start = registers[1]
-            end= registers[1]
+            start = registers[0]
+            end= registers[0]
             mb_fc = 0x06
-            #if 0 == self.send_request(params, start, end, mb_fc):
-                # retry once
-                #if 0 == self.send_request(params, start, end, mb_fc):
-                #    result = 0
+            log.debug(f'start: {start} end: {end}')
+            if 0 == self.send_request(params, start, end, mb_fc,value):
+                #retry once
+                if 0 == self.send_request(params, start, end, mb_fc,value):
+                    result = 0
                     
         if result == 1: 
-            self.status_lastUpdate = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-            self.status_connection = "Connected"
             log.debug(self._current_val)
-        else:
-            self.status_connection = "Disconnected"
 
     def get_current_val(self):
         return self._current_val

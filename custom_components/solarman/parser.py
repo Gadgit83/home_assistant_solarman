@@ -85,8 +85,13 @@ class ParameterParser:
         value = 0
         found = True
         shift = 0
+        #_LOGGER.debug(f'title: {title}') 
         for r in definition['registers']:
+            #_LOGGER.debug(f'r: {r}')        
             index = r - start   # get the decimal value of the register'
+            #_LOGGER.debug(f'index: {start}')
+            #_LOGGER.debug(f'index: {index}')
+            #_LOGGER.debug(f'index: {length}')   
             if (index >= 0) and (index < length):
                 offset = OFFSET_PARAMS + (index * 2)
                 temp = struct.unpack('>H', rawData[offset:offset + 2])[0]
@@ -94,6 +99,7 @@ class ParameterParser:
                 shift += 16
             else:
                 found = False
+        #_LOGGER.debug(f'found: {found}')        
         if found:
             if 'lookup' in definition:
                 self.result[title] = self.lookup_value (value, definition['lookup'])
@@ -148,41 +154,39 @@ class ParameterParser:
                 found = False
 
         if found:
+            #if 'lookup' in definition:
+                #self.result[title] = self.lookup_value (value, definition['lookup'])
             self.result[title] = value
         return 
     
     def try_parse_time (self, rawData, definition, start, length):
-        title = definition['name']         
+        title = definition['name']
         found = True
-        value = datetime.now()
-        for r in definition['registers']:
+        dt = datetime.now()
+        dt = dt.replace(second=0,microsecond=0)
+        #_LOGGER.debug(f'name:{title} rawData: {rawData} rawdata.length: {len(rawData)}') 
+        
+        for idx,r in enumerate(definition['registers']):
             index = r - start   # get the decimal value of the register'
-            # _LOGGER.debug(f'index: {index}') 
-            # _LOGGER.debug(f'length: {length}') 
-            # _LOGGER.debug('rawData:') 
-            # _LOGGER.debug(rawData) 
-            # _LOGGER.debug('rawdata.length:') 
-            # _LOGGER.debug(len(rawData)) 
-            # _LOGGER.debug(f'OFFSET_PARAMS + (index * 2):') 
-            # _LOGGER.debug(OFFSET_PARAMS + (index * 2)) 
-            # _LOGGER.debug(f'rawData[offset:offset + 2]:') 
-            # _LOGGER.debug(rawData[offset:offset + 2][0]) 
-            # _LOGGER.debug(rawData[offset:offset + 2][1]) 
+            #_LOGGER.debug(f'index: {index} length:{length} OFFSET_PARAMS + (index * 2):{OFFSET_PARAMS + (index * 2)}') 
             
             if (index >= 0) and (index < length):
                 offset = OFFSET_PARAMS + (index * 2)
                 temp = struct.unpack('>H', rawData[offset:offset + 2])[0]
-                #_LOGGER.debug(r)
-                if index == 0:
-                    value.hour = temp
+                #_LOGGER.debug(f'idx: {idx} idx%2: {idx%2} rawData[offset:offset + 2][0]: {rawData[offset:offset + 2][0]} rawData[offset:offset + 2][1]:{rawData[offset:offset + 2][1]} temp: {temp}')
+
+                if idx%2 == 0:
+                    #_LOGGER.debug(f'hour{temp}')
+                    dt = dt.replace(hour=temp)
                 else:
-                    value.minute = temp
+                    #_LOGGER.debug(f'minute{temp}')
+                    dt = dt.replace(minute=temp)
             else:
                 found = False
 
         if found:
-            _LOGGER.debug('found it')
-            self.result[title] = value
+            #_LOGGER.debug(f'found it{dt}')
+            self.result[title] = dt
         return 
     
     def get_sensors (self):

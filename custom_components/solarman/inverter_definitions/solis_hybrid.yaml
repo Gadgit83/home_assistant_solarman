@@ -13,28 +13,7 @@ requests:
   - start: 33200
     end:  33299
     mb_functioncode: 0x04
-  - start: 43110
-    end:  43110
-    mb_functioncode: 0x03
-  - start: 43115
-    end:  43115
-    mb_functioncode: 0x03
-  - start: 43116
-    end:  43116
-    mb_functioncode: 0x03
-  - start: 43117
-    end:  43117
-    mb_functioncode: 0x03
-  - start: 43118
-    end:  43118
-    mb_functioncode: 0x03
-  - start: 43141
-    end:  43141
-    mb_functioncode: 0x03
-  - start: 43142
-    end:  43142
-    mb_functioncode: 0x03
-  - start: 43143
+  - start: 43110 # This is the block of configuratble values on the Solis inverters
     end:  43166
     mb_functioncode: 0x03
 
@@ -46,18 +25,51 @@ configurables:
       state_class: "measurement"
       uom: ""
       scale: 1
-      rule: 1
+      rule: 6
       registers: [43110]
       icon: 'mdi:battery'
+      min: 33
+      max: 35
+      data_type: 'U16'
+      lookup: 
+      -  key: 33
+         value: "33 - Spontaneous Mode"
+      -  key: 35
+         value: "35 - Spontaneous+Timed Mode"
+      
+    - name: "Battery charge/discharge enable"
+      class: ""
+      state_class: ""
+      uom: ""
+      scale: 1
+      rule: 1
+      registers: [43114]
+      lookup: 
+      -  key: 0
+         value: "Disabled"
+      -  key: 1
+         value: "Enabled"
+      icon: 'mdi:home-lightning-bolt'
+      min: 0
+      max: 1
+      data_type: 'U16'
       
     - name: "Battery charge direction"
       class: ""
       state_class: ""
       uom: ""
       scale: 1
-      rule: 6
+      rule: 1
       registers: [43115]
+      lookup: 
+      -  key: 0
+         value: "Charge"
+      -  key: 1
+         value: "Discharge"
       icon: 'mdi:home-lightning-bolt'
+      min: 0
+      max: 1
+      data_type: 'U16'
       
     - name: "Battery charge/discharge current maximum"
       class: "current"
@@ -67,6 +79,9 @@ configurables:
       rule: 1
       registers: [43116]
       icon: 'mdi:current-dc'
+      min: 0
+      max: 650
+      data_type: 'U16'
       
     - name: "Battery charge current maximum"
       class: "current"
@@ -76,6 +91,9 @@ configurables:
       rule: 1
       registers: [43117]
       icon: 'mdi:current-dc'
+      min: 0
+      max: 650
+      data_type: 'U16'
       
     - name: "Battery discharge current maximum"
       class: "current"
@@ -85,6 +103,9 @@ configurables:
       rule: 1
       registers: [43118]
       icon: 'mdi:current-dc'
+      min: 0
+      max: 650
+      data_type: 'U16'
       
     - name: "Timed Charge Current"
       class: "current"
@@ -94,6 +115,9 @@ configurables:
       rule: 1
       registers: [43141]
       icon: 'mdi:battery-charging'
+      min: 0
+      max: 650
+      data_type: 'U16'
       
     - name: "Timed Discharge current"
       class: "current"
@@ -103,6 +127,9 @@ configurables:
       rule: 1
       registers: [43142]
       icon: 'mdi:battery-minus'
+      min: 0
+      max: 650
+      data_type: 'U16'
       
     - name: "Timed Charge Start 1"
       class: "time"
@@ -110,8 +137,10 @@ configurables:
       uom: ""
       scale: 0.1
       rule: 7
-      registers: [43144,43143]
+      registers: [43143,43144]
       icon: 'mdi:clock-start'
+      min: 0
+      max: 0
       
     - name: "Timed Charge End 1"
       class: "time"
@@ -119,8 +148,10 @@ configurables:
       uom: ""
       scale: 0.1
       rule: 7
-      registers: [43146,43145]
+      registers: [43145,43146]
       icon: 'mdi:clock-end'
+      min: 0
+      max: 0
       
     - name: "Timed Discharge Start 1"
       class: "time"
@@ -128,8 +159,10 @@ configurables:
       uom: ""
       scale: 0.1
       rule: 7
-      registers: [43148,43147]
+      registers: [43147,43148]
       icon: 'mdi:clock-start'
+      min: 0
+      max: 0
             
     - name: "Timed Discharge End 1"
       class: "time"
@@ -137,8 +170,10 @@ configurables:
       uom: ""
       scale: 0.1
       rule: 7
-      registers: [43150,43149]
+      registers: [43149,43150]
       icon: 'mdi:clock-end'
+      min: 0
+      max: 0
       
     - name: "Timed Charge Start 2"
       class: "time"
@@ -146,8 +181,10 @@ configurables:
       uom: ""
       scale: 0.1
       rule: 7
-      registers: [43152,43151]
+      registers: [43151,43152]
       icon: 'mdi:clock-start'
+      min: 0
+      max: 0
       
     - name: "Timed Charge End 2"
       class: "time"
@@ -155,8 +192,10 @@ configurables:
       uom: ""
       scale: 0.1
       rule: 7
-      registers: [43154,43153]
+      registers: [43153,43154]
       icon: 'mdi:clock-end'
+      min: 0
+      max: 0
       
     - name: "Timed Discharge Start 2"
       class: "time"
@@ -164,8 +203,10 @@ configurables:
       uom: ""
       scale: 0.1
       rule: 7
-      registers: [43156,43155]
+      registers: [43155,43156]
       icon: 'mdi:clock-start'
+      min: 0
+      max: 0
             
     - name: "Timed Discharge End 2"
       class: "time"
@@ -173,8 +214,10 @@ configurables:
       uom: ""
       scale: 0.1
       rule: 7
-      registers: [43158,43157]
+      registers: [43157,43158]
       icon: 'mdi:clock-end'
+      min: 0
+      max: 0
       
     - name: "Timed Charge Start 3"
       class: "time"
@@ -182,8 +225,10 @@ configurables:
       uom: ""
       scale: 0.1
       rule: 7
-      registers: [43160,43159]
+      registers: [43159,43160]
       icon: 'mdi:clock-start'
+      min: 0
+      max: 0
       
     - name: "Timed Charge End 3"
       class: "time"
@@ -191,8 +236,10 @@ configurables:
       uom: ""
       scale: 0.1
       rule: 7
-      registers: [43162,43161]
+      registers: [43161,43162]
       icon: 'mdi:clock-end'
+      min: 0
+      max: 0
       
     - name: "Timed Discharge Start 3"
       class: "time"
@@ -200,8 +247,10 @@ configurables:
       uom: ""
       scale: 0.1
       rule: 7
-      registers: [43164,43163]
+      registers: [43163,43164]
       icon: 'mdi:clock-start'
+      min: 0
+      max: 0
             
     - name: "Timed Discharge End 3"
       class: "time"
@@ -209,8 +258,10 @@ configurables:
       uom: ""
       scale: 0.1
       rule: 7
-      registers: [43166,43165]
+      registers: [43165,43166]
       icon: 'mdi:clock-end'
+      min: 0
+      max: 0
 parameters:
  - group: InverterStatus
    items: 
